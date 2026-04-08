@@ -50,7 +50,15 @@ logger = logging.getLogger(__name__)
 # Firebase init - supports both env variable (Railway) and file (local)
 firebase_creds_json = os.environ.get('FIREBASE_CREDENTIALS')
 if firebase_creds_json:
-    cred = credentials.Certificate(json.loads(firebase_creds_json))
+    try:
+        cred_dict = json.loads(firebase_creds_json)
+        # Fix escaped newlines in private key
+        if 'private_key' in cred_dict:
+            cred_dict['private_key'] = cred_dict['private_key'].replace('\\n', '\n')
+        cred = credentials.Certificate(cred_dict)
+    except Exception as e:
+        logger.error(f"Firebase env cred error: {e}")
+        cred = credentials.Certificate(FIREBASE_CRED_PATH)
 else:
     cred = credentials.Certificate(FIREBASE_CRED_PATH)
 firebase_admin.initialize_app(cred)
