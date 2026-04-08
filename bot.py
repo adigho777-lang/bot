@@ -7,6 +7,8 @@ EduUnlocked Key Generator Bot - @EduUnlocked_keys_bot
 """
 
 import sys
+import os
+import json
 import random
 import string
 import logging
@@ -28,8 +30,9 @@ import firebase_admin
 from firebase_admin import credentials, firestore
 
 # CONFIG
-BOT_TOKEN = "8704845066:AAGGnpdDBeLakcFtWzppJtDA-ua9oVUlZ7c"
-ADMIN_IDS = [1747637476]          # Admin IDs (can check/revoke keys)
+BOT_TOKEN = os.environ.get('BOT_TOKEN', '8704845066:AAGGnpdDBeLakcFtWzppJtDA-ua9oVUlZ7c')
+ADMIN_IDS_STR = os.environ.get('ADMIN_IDS', '1747637476')
+ADMIN_IDS = [int(x.strip()) for x in ADMIN_IDS_STR.split(',')]
 FIREBASE_CRED_PATH = "serviceAccountKey.json"
 CHANNEL_USERNAME = "@Edu_Unlocked"
 CHANNEL_LINK = "https://t.me/Edu_Unlocked"
@@ -44,7 +47,12 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
-cred = credentials.Certificate(FIREBASE_CRED_PATH)
+# Firebase init - supports both env variable (Railway) and file (local)
+firebase_creds_json = os.environ.get('FIREBASE_CREDENTIALS')
+if firebase_creds_json:
+    cred = credentials.Certificate(json.loads(firebase_creds_json))
+else:
+    cred = credentials.Certificate(FIREBASE_CRED_PATH)
 firebase_admin.initialize_app(cred)
 db = firestore.client()
 
