@@ -68,6 +68,9 @@ def is_admin(user_id: int) -> bool:
 
 async def is_channel_member(bot, user_id: int) -> bool:
     """Check if user is member of the channel"""
+    # Admins always pass
+    if is_admin(user_id):
+        return True
     try:
         member = await bot.get_chat_member(chat_id=CHANNEL_USERNAME, user_id=user_id)
         return member.status in [
@@ -108,6 +111,9 @@ async def cleanup_expired_keys(context: ContextTypes.DEFAULT_TYPE):
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user = update.effective_user
     name = user.first_name or "Student"
+    
+    # Log user ID for debugging
+    logger.info(f"User ID: {user.id}, Username: {user.username}, Is Admin: {is_admin(user.id)}, ADMIN_IDS: {ADMIN_IDS}")
 
     # Admins bypass channel check
     if is_admin(user.id):
